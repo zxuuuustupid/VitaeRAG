@@ -26,11 +26,6 @@ First, ensure you have **Python 3.8 or higher** installed.
 Then, clone or download this project, open a terminal in the project root directory, and (optionally) create a virtual environment before installing dependencies:
 
 ```bash
-# Create virtual environment (optional but recommended)
-python -m venv venv
-source venv/bin/activate  # On Windows use: venv\Scripts\activate
-
-# Install dependencies
 pip install -r requirements.txt
 ```
 
@@ -39,7 +34,8 @@ This project is set up to call a large language model (such as DeepSeek) via API
 
 First, create a file named `.env` in the project root directory.
 
-Then, open the `.env` file and add your API key and API endpoint in the following format. For example, using DeepSeek:
+Then, open the `.env` file and add your API key and API endpoint in the following format.This repository currently supports **DeepSeek** and **ZhipuAI**.
+ For example, using DeepSeek:
 
 ```
 LLM_PROVIDER="deepseek"
