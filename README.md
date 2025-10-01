@@ -50,12 +50,10 @@ DEEPSEEK_API_BASE="https://api.deepseek.com/v1
 Replace `your_deepseek_api_key_here` with your actual key.  
 The `app.py` script will automatically load this information from the file.
 
----
 
 ### 3. Add Your PDF Files
 Place the PDF papers or documents you want to query inside the `data` folder in the project root.
 
----
 
 ### 4. Create the Vector Database
 Run the `ingest.py` script in the terminal.  
@@ -66,7 +64,6 @@ python ingest.py
 ```
 This step only needs to be done once unless your document library changes.
 
----
 ### 5. Start Asking Questions!
 
 Once the vector database has been created, you can run the main application app.py to start asking questions.
@@ -76,5 +73,5 @@ python app.py
 
 After the program starts, you can type questions in the terminal, and the model will respond based on the content of your papers.
 Type exit to quit the program.
----
+
 ✨ Enjoy your usage!
