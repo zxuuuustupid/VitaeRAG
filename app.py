@@ -158,7 +158,6 @@ def qa_bot():
         #     if "source" in doc.metadata:
         #         # print(f"📄 来源: {doc.metadata['source']}")
         #         print(f"📄 Source: {doc.metadata['source']}")
-        print("\n" + "=" * 60)
 
         # 获取终端宽度（默认 80）
         terminal_width = shutil.get_terminal_size().columns
@@ -173,9 +172,8 @@ def qa_bot():
         )
 
         # print(f"\n\033[94m答案:\033[0m")
-        print(f"\n\033[94mAnswer:\033[0m")
+        print(f"\033[94mAnswer:\033[0m")
         print(f"\033[94m{wrapped_answer}\033[0m")
-
 
 if __name__ == "__main__":
     qa_bot()
