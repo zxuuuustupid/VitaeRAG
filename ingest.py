@@ -38,9 +38,48 @@ def create_vector_db():
     #     print("\n" + "=" * 60)
 
     # 分割文本
+    # 分割文档
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
     texts = text_splitter.split_documents(documents)
     print(f"文档被分割成 {len(texts)} 个文本块。")
+
+    # === 新增：过滤低质量/无意义的文本块 ===
+    def is_low_quality(text: str) -> bool:
+        """判断文本块是否为低质量内容（如封面、声明、参考文献等）"""
+        text_clean = text.strip()
+        if len(text_clean) < 80:  # 太短的块通常无意义
+            return True
+
+        text_lower = text_clean.lower()
+        # 常见噪声关键词（中英文）
+        noise_keywords = [
+            "e-mail", "email", "corresponding author", "first author",
+            "manuscript draft", "accepted manuscript",
+            "declaration of interest", "conflict of interest",
+            "editorial manager", "produxiion manager", "aries systems",
+            "reference", "references", "bibliography",
+            "figure", "fig.", "table", "doi:", "http", "www.",
+            "cover letter", "submission", "reviewer", "editor",
+            "copyright", "all rights reserved", "abstract"  # 注意：有些摘要很短，慎用
+        ]
+
+        # 如果包含多个噪声关键词，很可能是噪声页
+        match_count = sum(1 for kw in noise_keywords if kw in text_lower)
+        if match_count >= 2:
+            return True
+
+        # 特殊规则：如果包含邮箱但文本很短
+        if "@" in text_clean and len(text_clean.split()) < 15:
+            return True
+
+        return False
+
+    # 执行过滤
+    original_count = len(texts)
+    texts = [doc for doc in texts if not is_low_quality(doc.page_content)]
+    print(f"过滤低质量文本块后，剩余 {len(texts)} 个有效文本块（原 {original_count} 个）。")
+
+
 
     provider = os.getenv("LLM_PROVIDER", "deepseek").lower()
     print(f"正在使用提供商: {provider}")
