@@ -75,13 +75,5 @@ Type exit to quit the program.
 
 ✨ Enjoy your usage!
 
-<div style="display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; margin: 20px 0;">
-  <div style="text-align: center; max-width: 220px;">
-    <img src="assets/1.png" alt="run ingest.py" style="width:180px; height:auto; display:block; margin:0 auto 10px;"/>
-    <div style="font-size:14px; font-weight:600; color:#333;">run ingest.py</div>
-  </div>
-  <div style="text-align: center; max-width: 220px;">
-    <img src="assets/2.png" alt="run app.py" style="width:180px; height:auto; display:block; margin:0 auto 10px;"/>
-    <div style="font-size:14px; font-weight:600; color:#333;">run app.py</div>
-  </div>
-</div>
+Running results are shown below.:
+<table> <tr> <td align="center"> <img src="assets/1.png" alt="run ingest.py" width=200"><br> <p><b>run ingest.py</b></p> </td> <td align="center"> <img src="assets/2.png" alt="app.py" width="200"><br> <p><b>run app.py</b></p> </td> </tr> </table>
