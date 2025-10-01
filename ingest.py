@@ -21,7 +21,9 @@ def create_vector_db():
     # 加载 PDF
     loader = DirectoryLoader(DATA_PATH, glob='*.pdf', loader_cls=PyPDFLoader)
     documents = loader.load()
-    print(f"成功加载 {len(documents)} 份PDF文档。")
+
+    # print(f"成功加载 {len(documents)} 份PDF文档。")
+    print(f"Successfully loaded {len(documents)} PDF documents.")
 
     # from collections import defaultdict
     # page_count = defaultdict(int)
@@ -41,7 +43,9 @@ def create_vector_db():
     # 分割文档
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
     texts = text_splitter.split_documents(documents)
-    print(f"文档被分割成 {len(texts)} 个文本块。")
+
+    # print(f"文档被分割成 {len(texts)} 个文本块。")
+    print(f"The document was split into {len(texts)} text chunks.")
 
     # === 新增：过滤低质量/无意义的文本块 ===
     def is_low_quality(text: str) -> bool:
@@ -77,18 +81,19 @@ def create_vector_db():
     # 执行过滤
     original_count = len(texts)
     texts = [doc for doc in texts if not is_low_quality(doc.page_content)]
-    print(f"过滤低质量文本块后，剩余 {len(texts)} 个有效文本块（原 {original_count} 个）。")
 
-
+    # print(f"过滤低质量文本块后，剩余 {len(texts)} 个有效文本块（原 {original_count} 个）。")
+    print(f"After filtering low-quality text chunks, {len(texts)} valid chunks remain (originally {original_count}).")
 
     provider = os.getenv("LLM_PROVIDER", "deepseek").lower()
-    print(f"正在使用提供商: {provider}")
+    # print(f"正在使用提供商: {provider}")
+    print(f"Using provider: {provider}")
 
     if provider == "zhipuai":
         zhipu_api_key = os.getenv("ZHIPUAI_API_KEY")
-        if not zhipu_api_key:
-            raise ValueError("错误: LLM_PROVIDER 设置为 'zhipuai', 但未找到 ZHIPUAI_API_KEY。请在 .env 文件中设置。")
-        print("正在通过 ZhipuAI API 连接并加载词嵌入模型...")
+        # print("正在通过 ZhipuAI API 连接并加载词嵌入模型...")
+        print("Connecting to and loading the embedding model via ZhipuAI API...")
+
         embeddings = ZhipuAIEmbeddings(
             api_key=zhipu_api_key,
             model=os.getenv("ZHIPUAI_EMBEDDING_MODEL", "embedding-2")
@@ -100,7 +105,8 @@ def create_vector_db():
             batch = texts[i:i + batch_size]
             batch_embeddings = embeddings.embed_documents([doc.page_content for doc in batch])
             all_embeddings.extend(batch_embeddings)
-            print(f"已嵌入 {min(i + batch_size, len(texts))} / {len(texts)} 个文本块")
+            # print(f"已嵌入 {min(i + batch_size, len(texts))} / {len(texts)} 个文本块")
+            print(f"Embedded {min(i + batch_size, len(texts))} / {len(texts)} text chunks")
 
         # 使用 FAISS.from_embeddings 手动构建
         db = FAISS.from_embeddings(
@@ -110,9 +116,8 @@ def create_vector_db():
         )
 
     else:  # deepseek 或其他 OpenAI 兼容 API
-        if not all([os.getenv("DEEPSEEK_API_KEY"), os.getenv("DEEPSEEK_API_BASE")]):
-            raise ValueError("错误: LLM_PROVIDER 设置为 'deepseek' (或未设置), 但环境变量缺失。请检查 .env 文件。")
-        print("正在通过 DeepSeek API 连接并加载词嵌入模型...")
+        # print("正在通过 DeepSeek API 连接并加载词嵌入模型...")
+        print("Using DeepSeek to connect and load the embedding model...")
         embeddings = OpenAIEmbeddings(
             model=os.getenv("DEEPSEEK_EMBEDDING_MODEL", "text-embedding-v2"),
             openai_api_key=os.getenv("DEEPSEEK_API_KEY"),
@@ -124,7 +129,8 @@ def create_vector_db():
 
     # 保存数据库
     db.save_local(DB_FAISS_PATH)
-    print(f"向量数据库成功创建并保存于 '{DB_FAISS_PATH}'")
+    # print(f"向量数据库成功创建并保存于 '{DB_FAISS_PATH}'")
+    print(f"Vector database successfully created and saved to '{DB_FAISS_PATH}'")
 
 
 if __name__ == "__main__":
