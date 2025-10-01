@@ -75,5 +75,6 @@ Type exit to quit the program.
 
 ✨ Enjoy your usage!
 
-Running results are shown below.:
-<table> <tr> <td align="center"> <img src="assets/1.png" alt="run ingest.py" width=200"><br> <p><b>run ingest.py</b></p> </td> <td align="center"> <img src="assets/2.png" alt="app.py" width="200"><br> <p><b>run app.py</b></p> </td> </tr> </table>
+Some screenshots:
+![run-ingest](/assets/1.png)    
+![run-app](/assets/2.png)
