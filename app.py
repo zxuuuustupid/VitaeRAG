@@ -172,7 +172,7 @@ def qa_bot():
         )
 
         # print(f"\n\033[94m答案:\033[0m")
-        print(f"\033[94mAnswer:\033[0m")
+        print(f"\n\033[94mAnswer:\033[0m")
         print(f"\033[94m{wrapped_answer}\033[0m")
 
 if __name__ == "__main__":
