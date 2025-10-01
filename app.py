@@ -6,7 +6,8 @@ from langchain_community.embeddings import ZhipuAIEmbeddings
 from langchain_community.chat_models import ChatZhipuAI
 from langchain_community.vectorstores import FAISS
 from langchain.chains import RetrievalQA
-
+import textwrap
+import shutil
 # 加载 .env 文件中的环境变量
 load_dotenv()
 
@@ -14,7 +15,12 @@ load_dotenv()
 DB_FAISS_PATH = "vector_store/"
 
 # 自定义提问模板
-custom_prompt_template = """你是一个专业的学术助手，请严格基于以下提供的上下文信息回答问题。
+custom_prompt_template = """你是一位熟悉学术论文的研究助理，请根据以下上下文回答问题。
+
+- 如果上下文**包含相关信息**（如标题、摘要、方法、结论中的关键词或描述），请用**自然、简洁的中文**总结回答，可以适当组织语言，但**不要编造细节**。
+- 如果上下文**完全不涉及**问题主题，请回答：“根据提供的资料，我无法回答该问题”。注意！这是下下策！尽量不要这么回答！
+- 回答应像人类学者写的：**避免机械重复**，**不要用“根据上下文”开头**，**不可以使用加粗、项目符号等 Markdown 符号**，不要过度格式化。
+- 保持专业但口语化，例如：“论文提出了一种新方法……” 而不是 “该研究采用了……”。
 
 上下文:
 {context}
@@ -22,6 +28,7 @@ custom_prompt_template = """你是一个专业的学术助手，请严格基于�
 问题:
 {question}
 
+回答：
 """
 
 
@@ -128,13 +135,25 @@ def qa_bot():
         print("\n\033[95m🔍 检索到的相关上下文:\033[0m")
         for i, doc in enumerate(result["source_documents"], 1):
             print(f"\n--- 片段 {i} ---")
-            print(doc.page_content[:500] + "..." if len(doc.page_content) > 500 else doc.page_content)
-            # 可选：打印来源文件名
+            print(doc.page_content[:50] + "..." if len(doc.page_content) > 50 else doc.page_content)
             if "source" in doc.metadata:
                 print(f"📄 来源: {doc.metadata['source']}")
         print("\n" + "=" * 60)
 
-        print("\n\033[96m答案:\033[0m", result['result'])
+        # 获取终端宽度（默认 80）
+        terminal_width = shutil.get_terminal_size().columns
+
+        # 对答案进行自动换行（保留原有换行符）
+        wrapped_answer = textwrap.fill(
+            result['result'],
+            width=terminal_width - 10,  # 留点边距
+            replace_whitespace=False,  # 保留原有空格
+            break_long_words=False,  # 不拆单词
+            break_on_hyphens=False
+        )
+
+        print(f"\n\033[94m答案:\033[0m")
+        print(f"\033[94m{wrapped_answer}\033[0m")
 
 
 if __name__ == "__main__":
