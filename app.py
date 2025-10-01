@@ -14,14 +14,14 @@ load_dotenv()
 DB_FAISS_PATH = "vector_store/"
 
 # 自定义提问模板
-custom_prompt_template = """请基于以下提供的上下文信息来回答用户的问题。
-如果根据上下文无法得出答案，请直接说“根据提供的资料，我无法回答该问题”，不要尝试编造答案。
+custom_prompt_template = """你是一个专业的学术助手，请严格基于以下提供的上下文信息回答问题。
 
-上下文: {context}
-问题: {question}
+上下文:
+{context}
 
-只返回有用的答案，答案应尽量简洁。
-有用答案:
+问题:
+{question}
+
 """
 
 
@@ -93,7 +93,7 @@ def retrieval_qa_chain(llm, prompt, db):
 
 
 def qa_bot():
-    """问答机器人的主函数。"""
+    """问答机器人的主函数（带上下文调试输出）"""
     try:
         embeddings = get_embeddings()
     except Exception as e:
@@ -122,7 +122,50 @@ def qa_bot():
 
         print("\033[93m正在思考...\033[0m")
         result = qa.invoke({'query': query})
+
+        # === 新增：打印检索到的上下文（用于调试）===
+        print("\n\033[95m🔍 检索到的相关上下文（供调试）:\033[0m")
+        for i, doc in enumerate(result["source_documents"], 1):
+            print(f"\n--- 片段 {i} ---")
+            print(doc.page_content[:500] + "..." if len(doc.page_content) > 500 else doc.page_content)
+            # 可选：打印来源文件名
+            if "source" in doc.metadata:
+                print(f"📄 来源: {doc.metadata['source']}")
+        print("\n" + "=" * 60)
+
         print("\n\033[96m答案:\033[0m", result['result'])
+
+# def qa_bot():
+    # """问答机器人的主函数。"""
+    # try:
+    #     embeddings = get_embeddings()
+    # except Exception as e:
+    #     print(f"加载词嵌入模型时出错: {e}")
+    #     return
+    #
+    # if not os.path.exists(DB_FAISS_PATH):
+    #     print(f"错误：向量数据库路径 '{DB_FAISS_PATH}' 不存在。")
+    #     print("请先运行 'python ingest.py' 来创建数据库。")
+    #     return
+    #
+    # db = FAISS.load_local(DB_FAISS_PATH, embeddings, allow_dangerous_deserialization=True)
+    # llm = load_llm()
+    #
+    # if not llm:
+    #     return
+    #
+    # qa_prompt = set_custom_prompt()
+    # qa = retrieval_qa_chain(llm, qa_prompt, db)
+    #
+    # print("\n\033[94m你好！我是你的论文问答助手。输入 'exit' 来退出程序。\033[0m")
+    # while True:
+    #     query = input("\033[92m请输入你的问题: \033[0m")
+    #     if query.lower() == 'exit':
+    #         break
+    #
+    #     print("\033[93m正在思考...\033[0m")
+    #     result = qa.invoke({'query': query})
+    #     print("\n\033[96m答案:\033[0m", result['result'])
 
 
 if __name__ == "__main__":

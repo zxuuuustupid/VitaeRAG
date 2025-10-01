@@ -16,24 +16,32 @@ DB_FAISS_PATH = "vector_store/"
 
 def create_vector_db():
     """
-    创建向量数据库函数：
-    1. 从'data/'目录加载PDF文件。
-    2. 将加载的文档分割成小块。
-    3. 根据环境变量选择使用 DeepSeek 或 ZhipuAI API 将文本块转换为向量。
-    4. 使用FAISS（Facebook AI Similarity Search）存储这些向量。
-    5. 将构建好的向量数据库保存到本地。
+    创建向量数据库函数（支持 ZhipuAI 分批嵌入）
     """
-    # 使用 DirectoryLoader 加载 'data/' 目录中的所有 PDF 文件
+    # 加载 PDF
     loader = DirectoryLoader(DATA_PATH, glob='*.pdf', loader_cls=PyPDFLoader)
     documents = loader.load()
     print(f"成功加载 {len(documents)} 份PDF文档。")
 
-    # 使用 RecursiveCharacterTextSplitter 对文档进行分块
+    # from collections import defaultdict
+    # page_count = defaultdict(int)
+    # for doc in documents:
+    #     source = doc.metadata.get("source", "unknown")
+    #     page_count[source] += 1
+    #
+    # for source, count in page_count.items():
+    #     print(f"📄 {source}: 共 {count} 页")
+    # # 调试：打印第一篇 PDF 的前 500 字
+    # if documents:
+    #     print("\n【调试】第一篇 PDF 内容：")
+    #     print(documents[0].page_content)
+    #     print("\n" + "=" * 60)
+
+    # 分割文本
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
     texts = text_splitter.split_documents(documents)
     print(f"文档被分割成 {len(texts)} 个文本块。")
 
-    # 根据环境变量选择使用哪个提供商的API
     provider = os.getenv("LLM_PROVIDER", "deepseek").lower()
     print(f"正在使用提供商: {provider}")
 
@@ -46,7 +54,23 @@ def create_vector_db():
             api_key=zhipu_api_key,
             model=os.getenv("ZHIPUAI_EMBEDDING_MODEL", "embedding-2")
         )
-    else:  # 默认为 deepseek
+        # ===== 手动分批嵌入（ZhipuAI 限制每批 ≤64）=====
+        batch_size = 64
+        all_embeddings = []
+        for i in range(0, len(texts), batch_size):
+            batch = texts[i:i + batch_size]
+            batch_embeddings = embeddings.embed_documents([doc.page_content for doc in batch])
+            all_embeddings.extend(batch_embeddings)
+            print(f"已嵌入 {min(i + batch_size, len(texts))} / {len(texts)} 个文本块")
+
+        # 使用 FAISS.from_embeddings 手动构建
+        db = FAISS.from_embeddings(
+            text_embeddings=zip([doc.page_content for doc in texts], all_embeddings),
+            embedding=embeddings,
+            metadatas=[doc.metadata for doc in texts]
+        )
+
+    else:  # deepseek 或其他 OpenAI 兼容 API
         if not all([os.getenv("DEEPSEEK_API_KEY"), os.getenv("DEEPSEEK_API_BASE")]):
             raise ValueError("错误: LLM_PROVIDER 设置为 'deepseek' (或未设置), 但环境变量缺失。请检查 .env 文件。")
         print("正在通过 DeepSeek API 连接并加载词嵌入模型...")
@@ -54,14 +78,12 @@ def create_vector_db():
             model=os.getenv("DEEPSEEK_EMBEDDING_MODEL", "text-embedding-v2"),
             openai_api_key=os.getenv("DEEPSEEK_API_KEY"),
             openai_api_base=os.getenv("DEEPSEEK_API_BASE"),
-            chunk_size=16  # 这是向API发送请求时，每批处理的文本块数量
+            chunk_size=16  # OpenAIEmbeddings 支持自动分批
         )
+        # OpenAIEmbeddings 已内置分批，可直接使用 from_documents
+        db = FAISS.from_documents(texts, embeddings)
 
-    # 使用 FAISS 从文本块和它们的嵌入向量创建向量数据库
-    print("正在创建并嵌入向量（此过程可能需要一些时间，具体取决于文档数量）...")
-    db = FAISS.from_documents(texts, embeddings)
-
-    # 将创建好的向量数据库保存到指定的本地路径
+    # 保存数据库
     db.save_local(DB_FAISS_PATH)
     print(f"向量数据库成功创建并保存于 '{DB_FAISS_PATH}'")
 

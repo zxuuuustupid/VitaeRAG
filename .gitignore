@@ -1,3 +1,5 @@
 /.idea
 *.pdf
 .env
+/vector_store
+

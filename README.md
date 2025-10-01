@@ -42,8 +42,11 @@ First, create a file named `.env` in the project root directory.
 Then, open the `.env` file and add your API key and API endpoint in the following format. For example, using DeepSeek:
 
 ```
+LLM_PROVIDER="deepseek"
 DEEPSEEK_API_KEY="your_deepseek_api_key_here"
-DEEPSEEK_API_BASE="https://api.deepseek.com/v1
+DEEPSEEK_API_BASE="https://api.deepseek.com/v1"
+DEEPSEEK_EMBEDDING_MODEL="text-embedding-v2"
+DEEPSEEK_CHAT_MODEL="deepseek-chat"
 ```
 
 
